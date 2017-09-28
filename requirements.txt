@@ -1,0 +1,7 @@
+ffmpeg-python==0.1.6
+future==0.16.0
+iso8601==0.1.12
+jsonfinder==0.4.2
+lxml==4.0.0
+m3u8==0.3.3
+pycurl==7.43.0
