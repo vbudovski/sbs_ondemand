@@ -1,6 +1,6 @@
 # SBS OnDemand Downloader
 
-An alternative way to view SBS OnDemand content. No need create an account or install flash player.
+An alternative way to view SBS OnDemand content. No need to create an account or install flash player.
 
 
 ## Dependencies
