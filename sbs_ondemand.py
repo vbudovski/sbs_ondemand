@@ -221,20 +221,27 @@ class SBSOnDemand(object):
         smil_tree = etree.fromstring(smil_url)
         namespace = {'smil': 'http://www.w3.org/2005/SMIL21/Language'}
 
-        video_tree = smil_tree.xpath('//smil:body/smil:seq/smil:par/smil:video', namespaces=namespace)
+        video_tree = smil_tree.xpath(
+            '//smil:body/smil:seq/smil:par/smil:video|//smil:body/smil:seq/smil:video',
+            namespaces=namespace,
+        )
         srt_tree = smil_tree.xpath(
             '//smil:body/smil:seq/smil:par/smil:textstream[@type="text/srt"]',
             namespaces=namespace,
         )
 
         title = video_tree[0].attrib['title']
-        video_url = video_tree[0].attrib['src']
-        srt_url = srt_tree[0].attrib['src']
 
-        output_path = os.path.join(output_dir, '{}.srt'.format(title))
-        with open(output_path, 'w') as f:
-            srt_content = get_with_retry(srt_url)
-            f.write(srt_content)
+        if srt_tree:
+            # Subtitles found.
+            srt_url = srt_tree[0].attrib['src']
+
+            output_path = os.path.join(output_dir, '{}.srt'.format(title))
+            with open(output_path, 'w') as f:
+                srt_content = get_with_retry(srt_url)
+                f.write(srt_content)
+
+        video_url = video_tree[0].attrib['src']
 
         m3u8_obj = m3u8.load(video_url)
         best_quality = max(m3u8_obj.playlists, key=lambda p: p.stream_info.bandwidth)
