@@ -300,7 +300,7 @@ class SBSOnDemand(object):
         episodes = list(cursor.fetchall())
         if not episodes:
             # Download the movie.
-            SBSOnDemand.fetch_video_url(title_id, 1, video_title, 1)
+            SBSOnDemand.fetch_video_url(title_id, 1, video_title, 1, output_dir)
             return
 
         # This is a TV series, so download the episodes.
