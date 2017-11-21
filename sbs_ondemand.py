@@ -217,7 +217,7 @@ class SBSOnDemand(object):
 
     @staticmethod
     def save_video(url, output_dir):
-        smil_url = get_with_retry('http:{}'.format(url))
+        smil_url = get_with_retry(url)
         smil_tree = etree.fromstring(smil_url)
         namespace = {'smil': 'http://www.w3.org/2005/SMIL21/Language'}
 
