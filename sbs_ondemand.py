@@ -226,7 +226,7 @@ class SBSOnDemand(object):
             namespaces=namespace,
         )
         srt_tree = smil_tree.xpath(
-            '//smil:body/smil:seq/smil:par/smil:textstream[@type="text/srt"]',
+            '//smil:body/smil:seq/smil:par/smil:textstream[@type="text/srt"][not(@lang)]',
             namespaces=namespace,
         )
 
