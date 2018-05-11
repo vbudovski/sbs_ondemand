@@ -89,7 +89,7 @@ class SBSOnDemandTVProgram(SBSOnDemandAsset):
             })
 
     def _program_with_deal_code(self, pilat_deal_code):
-        url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatId}}{{{}}}'.format(
+        url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatDealcode}}{{{}}}'.format(
             API_ROOT,
             pilat_deal_code,
         )
@@ -112,7 +112,7 @@ class SBSOnDemandTVProgram(SBSOnDemandAsset):
                 if pilat_deal_code is None:
                     raise ValueError
 
-                url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatId}}{{{}}}'.format(
+                url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatDealcode}}{{{}}}'.format(
                     API_ROOT,
                     pilat_deal_code,
                 )
