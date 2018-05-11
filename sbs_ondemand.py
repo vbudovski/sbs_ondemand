@@ -76,9 +76,6 @@ class SBSOnDemandAsset(ABC):
 
 
 class SBSOnDemandTVProgram(SBSOnDemandAsset):
-    _seasons = None
-    _episodes = None
-
     def _process_episodes(self, episodes):
         for episode in episodes:
             video_id = episode['id'][episode['id'].rfind('/') + 1:]
@@ -110,7 +107,7 @@ class SBSOnDemandTVProgram(SBSOnDemandAsset):
                         break
 
                 if pilat_deal_code is None:
-                    raise ValueError
+                    raise KeyError
 
                 url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatDealcode}}{{{}}}'.format(
                     API_ROOT,
@@ -154,7 +151,11 @@ class SBSOnDemandTVProgram(SBSOnDemandAsset):
                 self._program_with_no_seasons(url)
             except KeyError:
                 pilat_deal_code = data['pl1$pilatDealcode']
-                self._program_with_deal_code(pilat_deal_code)
+
+                if not pilat_deal_code:
+                    logging.error('Error importing episodes')
+                else:
+                    self._program_with_deal_code(pilat_deal_code)
 
     def episodes(self):
         return self._episodes
