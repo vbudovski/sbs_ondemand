@@ -79,39 +79,82 @@ class SBSOnDemandTVProgram(SBSOnDemandAsset):
     _seasons = None
     _episodes = None
 
-    def __init__(self, data):
-        super().__init__()
-
-        self._title = data['name']
-        self._id = data['id']
-
-        r = get_with_retry('{}video_program?context=web2&id={}'.format(API_ROOT, self._id))
-        if r is None:
-            logging.error('Failed to fetch data for {}'.format(self.title()))
-            raise RuntimeError('Error fetching program data')
-
-        episode_data = json.loads(r)['program']
-
-        if data['type'] == 'program_series':
-            self._seasons = len(episode_data['seasons'])
-
-            url = episode_data['url']
-        else:
-            url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatId}}{{{}}}'.format(
-                API_ROOT,
-                episode_data['pl1$pilatId'],
-            )
-
-        r = get_with_retry(url)
-
-        self._episodes = []
-        for episode in json.loads(r)['entries']:
+    def _process_episodes(self, episodes):
+        for episode in episodes:
             video_id = episode['id'][episode['id'].rfind('/') + 1:]
 
             self._episodes.append({
                 'title': episode['title'],
                 'id': video_id,
             })
+
+    def _program_with_deal_code(self, pilat_deal_code):
+        url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatId}}{{{}}}'.format(
+            API_ROOT,
+            pilat_deal_code,
+        )
+
+        r = get_with_retry(url)
+
+        episodes = json.loads(r)['entries']
+        self._process_episodes(episodes)
+
+    def _program_with_seasons(self, seasons):
+        for season in seasons:
+            try:
+                # Do a case insensitive search for the deal code, as the format returned is not consistent.
+                pilat_deal_code = None
+                for key, value in season.items():
+                    if key.lower() == 'pilatDealCode'.lower():
+                        pilat_deal_code = value
+                        break
+
+                if pilat_deal_code is None:
+                    raise ValueError
+
+                url = '{}video_feed/f/Bgtm9B/sbs-section-programs/?byCustomValue={{pilatId}}{{{}}}'.format(
+                    API_ROOT,
+                    pilat_deal_code,
+                )
+            except KeyError:
+                try:
+                    url = season['url']
+                except KeyError:
+                    logging.error('Unable to process season')
+                    continue
+
+            r = get_with_retry(url)
+            if r is None:
+                logging.error('Unable to process season')
+                continue
+
+            episodes = json.loads(r)['entries']
+            self._process_episodes(episodes)
+
+    def _program_with_no_seasons(self, url):
+        r = get_with_retry(url)
+
+        episodes = json.loads(r)['entries']
+        self._process_episodes(episodes)
+
+    def __init__(self, data):
+        super().__init__()
+
+        self._title = data['name']
+        self._id = data['id']
+
+        self._episodes = []
+
+        try:
+            seasons = data['seasons']
+            self._program_with_seasons(seasons)
+        except KeyError:
+            try:
+                url = data['url']
+                self._program_with_no_seasons(url)
+            except KeyError:
+                pilat_deal_code = data['pl1$pilatDealcode']
+                self._program_with_deal_code(pilat_deal_code)
 
     def episodes(self):
         return self._episodes
@@ -184,7 +227,7 @@ class SBSOnDemand(object):
     @staticmethod
     def program_list():
         r = get_with_retry('{}video_programs/all?upcoming=1'.format(API_ROOT))
-        return json.loads(r)['entries']
+        return json.loads(r)['entries'].values()
 
     def synchronise(self):
         cursor = self._connection.cursor()
