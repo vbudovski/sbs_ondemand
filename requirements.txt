@@ -1,3 +1,4 @@
+chardet==3.0.4
 ffmpeg-python==0.1.6
 future==0.16.0
 iso8601==0.1.12

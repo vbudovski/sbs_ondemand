@@ -16,6 +16,7 @@
 
 
 import argparse
+import chardet
 import json
 import logging
 import multiprocessing
@@ -55,7 +56,11 @@ def get_with_retry(url):
         response_code = c.getinfo(c.RESPONSE_CODE)
         if response_code == 200:
             c.close()
-            return buffer.getvalue().decode()
+
+            value = buffer.getvalue()
+            encoding = chardet.detect(value)
+
+            return value.decode(encoding['encoding'])
 
         retries_left -= 1
         time.sleep(1)
@@ -228,7 +233,7 @@ class SBSOnDemand(object):
     @staticmethod
     def program_list():
         r = get_with_retry('{}video_programs/all?upcoming=1'.format(API_ROOT))
-        return json.loads(r)['entries'].values()
+        return json.loads(r)['entries']
 
     def synchronise(self):
         cursor = self._connection.cursor()
